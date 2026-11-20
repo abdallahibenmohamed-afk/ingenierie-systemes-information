@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype cliquable - Bibliothèque universitaire</title>
+<style>
+  :root{--bleu:#1F4E79;--bleu-clair:#E8F0F8;--gris:#5B6570;--ligne:#D5DCE4;--vert:#2E7D32;--rouge:#B3261E;--fond:#F3F5F8}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--fond);color:#1c2430}
+  .legende{max-width:860px;margin:14px auto 0;padding:0 12px;font-size:13px;color:var(--gris)}
+  .legende b{color:#1c2430}
+  .saut{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .saut button{font:inherit;font-size:12.5px;border:1px solid var(--ligne);background:#fff;border-radius:999px;padding:4px 11px;cursor:pointer;color:var(--bleu)}
+  .saut button:hover{background:var(--bleu-clair)}
+  .fenetre{max-width:860px;margin:12px auto 28px;background:#fff;border:1px solid var(--ligne);border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(20,40,70,.08)}
+  .barre{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#E9EDF2;border-bottom:1px solid var(--ligne)}
+  .points{display:flex;gap:5px}.points i{width:10px;height:10px;border-radius:50%;background:#C4CCD6;display:block}
+  .url{flex:1;background:#fff;border:1px solid var(--ligne);border-radius:6px;padding:4px 10px;font-size:12.5px;color:var(--gris)}
+  header.appbar{display:flex;align-items:center;justify-content:space-between;background:var(--bleu);color:#fff;padding:12px 20px}
+  header.appbar strong{letter-spacing:.08em;font-size:15px}
+  nav a{color:#fff;opacity:.85;text-decoration:none;font-size:13.5px;margin-left:16px;cursor:pointer}
+  nav a:hover{opacity:1;text-decoration:underline}
+  main{padding:26px 28px 34px;min-height:430px}
+  h1{font-size:20px;margin:0 0 4px;color:var(--bleu);letter-spacing:.03em}
+  .sous{color:var(--gris);font-size:14px;margin:0 0 20px}
+  label{display:block;font-size:13.5px;font-weight:600;margin:14px 0 5px}
+  input,select{font:inherit;font-size:14.5px;padding:9px 11px;border:1px solid #B9C3CF;border-radius:6px;width:100%;background:#fff}
+  input:focus,select:focus{outline:2px solid #8DB4DA;border-color:var(--bleu)}
+  .btn{font:inherit;font-size:14.5px;font-weight:600;background:var(--bleu);color:#fff;border:0;border-radius:6px;padding:10px 18px;cursor:pointer}
+  .btn:hover{background:#173d60}
+  .btn.sec{background:#fff;color:var(--bleu);border:1px solid var(--bleu)}
+  .btn.sec:hover{background:var(--bleu-clair)}
+  .col{max-width:380px;margin:0 auto}
+  .ligne-form{display:flex;gap:8px}.ligne-form input{flex:1}
+  .filtres{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 6px}.filtres div{min-width:170px}.filtres label{margin-top:0}
+  .liste{margin-top:12px;border-top:1px solid var(--ligne)}
+  .item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--ligne)}
+  .item .t{font-weight:600}.item .a{font-size:13px;color:var(--gris)}
+  .dispo{font-size:13px;font-weight:600}.dispo.ok{color:var(--vert)}.dispo.ko{color:var(--rouge)}
+  .fiche dl{display:grid;grid-template-columns:170px 1fr;gap:10px 16px;margin:20px 0;font-size:15px}
+  .fiche dt{color:var(--gris)}.fiche dd{margin:0;font-weight:600}
+  .message{margin-top:16px;padding:10px 14px;border-radius:6px;font-size:14px;display:none}
+  .message.ok{display:block;background:#E6F3E7;color:#1B5E20;border:1px solid #A9D4AC}
+  .message.err{display:block;background:#FBE9E7;color:#8C1D18;border:1px solid #E7B1AB}
+  .cartes{display:flex;gap:14px;margin:6px 0 20px;flex-wrap:wrap}
+  .carte{flex:1;min-width:170px;border:1px solid var(--ligne);border-radius:8px;padding:14px 16px}
+  .carte .n{font-size:30px;font-weight:700;color:var(--bleu)}.carte.r .n{color:var(--rouge)}
+  .carte .l{font-size:13.5px;color:var(--gris)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--ligne)}
+  th{font-size:12.5px;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+  tr.retard td{color:var(--rouge)}
+  .tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 8px}.tag.r{background:#FBE9E7;color:var(--rouge)}.tag.b{background:var(--bleu-clair);color:var(--bleu)}
+  .aide{display:block;text-align:center;margin-top:18px;font-size:13px;color:var(--bleu);cursor:pointer}
+  .regle{margin-top:22px;font-size:12.5px;color:var(--gris);border-top:1px dashed var(--ligne);padding-top:10px}
+  .ecran{display:none}.ecran.actif{display:block}
+  .cache{display:none!important}
+  .demo{font-size:12.5px;color:var(--gris);margin-top:14px;text-align:center}
+  .demo a{color:var(--bleu);cursor:pointer;text-decoration:underline}
+  @media (max-width:560px){main{padding:18px 14px}.fiche dl{grid-template-columns:1fr}.item{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="legende">
+  <b>Prototype cliquable</b> - Séance 6, Gestion d'une bibliothèque universitaire. Les données sont fictives (mêmes que le fichier SQL, au 19/11/2026).
+  <div class="saut" id="saut"></div>
+</div>
+
+<div class="fenetre">
+  <div class="barre"><div class="points"><i></i><i></i><i></i></div><div class="url">bibliotheque.universite</div></div>
+  <header class="appbar">
+    <strong>BIBLIOTHÈQUE</strong>
+    <nav id="nav" class="cache">
+      <a data-go="catalogue">Catalogue</a>
+      <a data-go="emprunt" data-role="bib">Emprunts</a>
+      <a data-go="dashboard" data-role="bib">Tableau de bord</a>
+      <a data-go="connexion" id="quitter">Déconnexion</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. CONNEXION -->
+    <section class="ecran actif" id="connexion">
+      <div class="col">
+        <h1>BIBLIOTHÈQUE UNIVERSITAIRE</h1>
+        <p class="sous">Connectez-vous avec votre adresse électronique.</p>
+        <label for="email">Adresse électronique</label>
+        <input id="email" type="email" value="aminata.diallo@univ.example" autocomplete="off">
+        <label for="mdp">Mot de passe</label>
+        <input id="mdp" type="password" value="motdepasse" autocomplete="off">
+        <p style="margin:20px 0 0"><button class="btn" id="btn-login">Se connecter</button></p>
+        <div class="message" id="msg-login"></div>
+        <a class="aide" id="aide">Besoin d'aide ?</a>
+        <div class="message" id="msg-aide" style="text-align:center"></div>
+        <p class="demo">Démo : <a id="d-etu">compte étudiant</a> · <a id="d-bib">compte bibliothécaire</a></p>
+        <p class="regle">Règles d'accès : l'étudiant consulte le catalogue ; le bibliothécaire accède aux fonctions de gestion selon son rôle.</p>
+      </div>
+    </section>
+
+    <!-- 2. CATALOGUE -->
+    <section class="ecran" id="catalogue">
+      <h1>CATALOGUE</h1>
+      <p class="sous">Recherchez un ouvrage et filtrez par catégorie et disponibilité.</p>
+      <label for="q" style="margin-top:0">Rechercher un titre, auteur ou ISBN</label>
+      <div class="ligne-form"><input id="q" placeholder="Ex. : bases de données, Hugo, 978-..."><button class="btn" id="btn-rech">Rechercher</button></div>
+      <div class="filtres">
+        <div><label for="fcat">Catégorie</label><select id="fcat"><option value="">Toutes</option></select></div>
+        <div><label for="fdisp">Disponibilité</label><select id="fdisp"><option value="">Toutes</option><option value="oui">Disponible</option><option value="non">Indisponible</option></select></div>
+      </div>
+      <div class="liste" id="liste"></div>
+    </section>
+
+    <!-- 3. FICHE -->
+    <section class="ecran fiche" id="fiche">
+      <h1>FICHE DU LIVRE</h1>
+      <h2 id="f-titre" style="margin:8px 0 0;font-size:19px"></h2>
+      <dl>
+        <dt>Auteur</dt><dd id="f-auteur"></dd>
+        <dt>Catégorie</dt><dd id="f-cat"></dd>
+        <dt>ISBN</dt><dd id="f-isbn"></dd>
+        <dt>Exemplaires disponibles</dt><dd id="f-dispo"></dd>
+      </dl>
+      <button class="btn sec" data-go="catalogue">Retour au catalogue</button>
+    </section>
+
+    <!-- 4. EMPRUNT -->
+    <section class="ecran" id="emprunt">
+      <h1>GESTION DES EMPRUNTS</h1>
+      <p class="sous">Choisissez l'étudiant et un exemplaire disponible, puis confirmez.</p>
+      <div class="col" style="margin:0;max-width:480px">
+        <label for="e-etu" style="margin-top:0">Étudiant (nom ou e-mail)</label>
+        <input id="e-etu" list="dl-etu" placeholder="Rechercher par nom / email" autocomplete="off">
+        <datalist id="dl-etu"></datalist>
+        <label for="e-ex">Exemplaire</label>
+        <select id="e-ex"></select>
+        <label>Date d'emprunt</label><input value="19/11/2026" disabled>
+        <label>Retour prévu (14 jours)</label><input value="03/12/2026" disabled>
+        <p style="margin:20px 0 0"><button class="btn" id="btn-emp">Confirmer l'emprunt</button></p>
+        <div class="message" id="msg-emp"></div>
+      </div>
+    </section>
+
+    <!-- 5. TABLEAU DE BORD -->
+    <section class="ecran" id="dashboard">
+      <h1>TABLEAU DE BORD</h1>
+      <p class="sous">Situation au 19/11/2026.</p>
+      <div class="cartes">
+        <div class="carte"><div class="n" id="n-actifs">7</div><div class="l">Emprunts actifs</div></div>
+        <div class="carte r"><div class="n" id="n-retards">3</div><div class="l">Retards</div></div>
+      </div>
+      <h2 style="font-size:16px;margin:0 0 6px">Emprunts à rendre bientôt</h2>
+      <table><thead><tr><th>Nom étudiant</th><th>Livre</th><th>Date prévue</th><th></th></tr></thead><tbody id="tb"></tbody></table>
+      <p style="margin:18px 0 0"><button class="btn sec" id="btn-chercher">Chercher un emprunt</button></p>
+      <div id="zone-chercher" class="cache" style="margin-top:12px"><input id="q-emp" placeholder="Nom de l'étudiant ou titre du livre"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---- Données fictives (identiques à schema_donnees.sql) ---- */
+const LIVRES=[
+ {id:1,titre:"Le Petit Prince",auteur:"Antoine de Saint-Exupéry",cat:"Littérature",isbn:"978-0000000001",ex:[1,2,3]},
+ {id:2,titre:"Introduction aux bases de données",auteur:"A. Martin",cat:"Informatique",isbn:"978-0000000000",ex:[4,5]},
+ {id:3,titre:"UML pour débutants",auteur:"M. Diop",cat:"Informatique",isbn:"978-0000000003",ex:[6,7]},
+ {id:4,titre:"Algorithmique et structures de données",auteur:"S. Camara",cat:"Informatique",isbn:"978-0000000004",ex:[8,9]},
+ {id:5,titre:"Analyse mathématique",auteur:"P. Lemoine",cat:"Mathématiques",isbn:"978-0000000005",ex:[10]},
+ {id:6,titre:"Algèbre linéaire",auteur:"P. Lemoine, R. Bah",cat:"Mathématiques",isbn:"978-0000000006",ex:[11,12]},
+ {id:7,titre:"Physique générale",auteur:"J. Okafor",cat:"Sciences",isbn:"978-0000000007",ex:[13]},
+ {id:8,titre:"Histoire de l'Afrique de l'Ouest",auteur:"C. Sarr",cat:"Histoire",isbn:"978-0000000008",ex:[14,15]},
+ {id:9,titre:"Les Misérables",auteur:"Victor Hugo",cat:"Littérature",isbn:"",ex:[16,17]},
+ {id:10,titre:"Statistique descriptive",auteur:"L. Seck",cat:"Mathématiques",isbn:"978-0000000010",ex:[]}
+];
+const EXEMPLAIRES={}; // id -> {code, livre, etat}
+LIVRES.forEach(l=>l.ex.forEach(e=>EXEMPLAIRES[e]={code:"BIB-"+String(e).padStart(4,"0"),livre:l.id,etat:"bon"}));
+const ETUDIANTS=[
+ [1,"Aminata Diallo","aminata.diallo@univ.example"],[2,"Boubacar Fall","boubacar.fall@univ.example"],
+ [3,"Fatou Ndiaye","fatou.ndiaye@univ.example"],[4,"Moussa Sow","moussa.sow@univ.example"],
+ [5,"Awa Ba","awa.ba@univ.example"],[6,"Ibrahima Sy","ibrahima.sy@univ.example"],[7,"Khady Gueye","khady.gueye@univ.example"]];
+// emprunts actifs : [étudiant, exemplaire, date prévue ISO]
+const ACTIFS=[[1,4,"2026-11-21"],[2,6,"2026-11-22"],[3,5,"2026-11-24"],[4,1,"2026-11-26"],[6,8,"2026-11-03"],[7,14,"2026-11-08"],[5,16,"2026-11-11"]];
+const AUJ="2026-11-19";
+
+/* ---- Utilitaires ---- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const nomEtu=id=>ETUDIANTS.find(e=>e[0]==id)[1];
+const frDate=iso=>iso.split("-").reverse().join("/");
+let role=null, livreCourant=null;
+const estPris=ex=>ACTIFS.some(a=>a[1]==ex);
+const nbDispo=l=>l.ex.filter(e=>EXEMPLAIRES[e].etat==="bon"&&!estPris(e)).length;
+
+/* ---- Navigation ---- */
+const TITRES={connexion:"1 Connexion",catalogue:"2 Catalogue",fiche:"3 Fiche du livre",emprunt:"4 Enregistrer un emprunt",dashboard:"5 Tableau de bord"};
+function aller(id){
+  if((id==="emprunt"||id==="dashboard")&&role!=="bib"){ id=role===null?"connexion":"catalogue" }
+  if(id!=="connexion"&&role===null) id="connexion";
+  $$(".ecran").forEach(s=>s.classList.toggle("actif",s.id===id));
+  $("#nav").classList.toggle("cache",role===null);
+  $$("[data-role=bib]").forEach(a=>a.classList.toggle("cache",role!=="bib"));
+  if(id==="catalogue")dessinerCatalogue(); if(id==="emprunt")preparerEmprunt(); if(id==="dashboard")dessinerBord();
+  window.scrollTo({top:0});
+  try{history.replaceState(null,"","#"+id)}catch(e){}
+}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]"); if(g){ if(g.id==="quitter")role=null; aller(g.dataset.go);} });
+$("#saut").innerHTML=Object.entries(TITRES).map(([k,v])=>`<button data-saut="${k}">${v}</button>`).join("");
+function ouvrirFiche(l){livreCourant=l;$("#f-titre").textContent=l.titre;$("#f-auteur").textContent=l.auteur;$("#f-cat").textContent=l.cat;$("#f-isbn").textContent=l.isbn||"non renseigné";$("#f-dispo").textContent=nbDispo(l);}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-saut]");if(!b)return;
+  const cible=b.dataset.saut;
+  if(cible==="connexion"){role=null;aller("connexion");return;}
+  if(role===null){
+    aller("connexion");
+    const box=$("#msg-login");box.className="message err";box.textContent="Connectez-vous avant d’ouvrir cette page.";
+    return;
+  }
+  if((cible==="emprunt"||cible==="dashboard")&&role!=="bib"){
+    window.alert("Cette page est réservée au bibliothécaire.");return;
+  }
+  if(cible==="fiche"&&!livreCourant)ouvrirFiche(LIVRES[1]);
+  aller(cible);
+});
+
+/* ---- 1. Connexion ---- */
+function connecter(){
+  const m=$("#email").value.trim(), p=$("#mdp").value, box=$("#msg-login");
+  if(!m||!p){box.className="message err";box.textContent="Veuillez renseigner l'adresse électronique et le mot de passe.";return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){box.className="message err";box.textContent="Adresse électronique invalide.";return;}
+  box.className="message"; role=/mbaye|thiam|biblio/i.test(m)?"bib":"etu";
+  aller(role==="bib"?"dashboard":"catalogue");
+}
+$("#btn-login").onclick=connecter;
+$("#d-etu").onclick=()=>{$("#email").value="aminata.diallo@univ.example";$("#msg-login").className="message";$("#mdp").focus()};
+$("#d-bib").onclick=()=>{$("#email").value="cheikh.mbaye@univ.example";$("#msg-login").className="message";$("#mdp").focus()};
+$("#aide").onclick=()=>{const b=$("#msg-aide");b.className="message ok";b.textContent="Mot de passe oublié ? Contactez l'administrateur de la bibliothèque."};
+
+/* ---- 2. Catalogue ---- */
+[...new Set(LIVRES.map(l=>l.cat))].sort().forEach(c=>$("#fcat").insertAdjacentHTML("beforeend",`<option>${c}</option>`));
+function dessinerCatalogue(){
+  const q=$("#q").value.trim().toLowerCase(), c=$("#fcat").value, d=$("#fdisp").value;
+  const r=LIVRES.filter(l=>(!q||(l.titre+" "+l.auteur+" "+l.isbn).toLowerCase().includes(q))&&(!c||l.cat===c)&&(!d||(d==="oui")===(nbDispo(l)>0)));
+  $("#liste").innerHTML=r.length?r.map(l=>{const n=nbDispo(l);return `<div class="item"><div><div class="t">${l.titre}</div><div class="a">${l.auteur} · ${l.cat}</div></div>
+    <div style="display:flex;align-items:center;gap:14px"><span class="dispo ${n?'ok':'ko'}">Disponible : ${n} exemplaire${n>1?'s':''}</span><button class="btn sec" data-fiche="${l.id}">Voir la fiche</button></div></div>`}).join(""):`<p class="sous" style="margin-top:16px">Aucun livre trouvé.</p>`;
+}
+["#btn-rech"].forEach(s=>$(s).onclick=dessinerCatalogue);
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter")dessinerCatalogue()});
+["#fcat","#fdisp"].forEach(s=>$(s).onchange=dessinerCatalogue);
+document.addEventListener("click",e=>{const b=e.target.closest("[data-fiche]");if(!b)return;
+  ouvrirFiche(LIVRES.find(x=>x.id==b.dataset.fiche)); aller("fiche");});
+
+/* ---- 4. Emprunt ---- */
+ETUDIANTS.forEach(e=>$("#dl-etu").insertAdjacentHTML("beforeend",`<option value="${e[1]} - ${e[2]}">`));
+function preparerEmprunt(){
+  const opts=['<option value="">Choisir un exemplaire</option>'];
+  LIVRES.forEach(l=>l.ex.forEach(e=>{ if(EXEMPLAIRES[e].etat==="bon"&&!estPris(e)) opts.push(`<option value="${e}">${EXEMPLAIRES[e].code} - ${l.titre}</option>`)}));
+  $("#e-ex").innerHTML=opts.join("");
+}
+$("#btn-emp").onclick=()=>{
+  const box=$("#msg-emp"), t=$("#e-etu").value.trim().toLowerCase(), ex=$("#e-ex").value;
+  if(!t||!ex){box.className="message err";box.textContent="Information obligatoire manquante : choisissez un étudiant et un exemplaire.";return;}
+  const etu=ETUDIANTS.find(e=>(e[1]+" - "+e[2]).toLowerCase()===t||e[2].toLowerCase()===t||e[1].toLowerCase()===t);
+  if(!etu){box.className="message err";box.textContent="Étudiant introuvable : aucun compte ne correspond.";return;}
+  if(estPris(+ex)){box.className="message err";box.textContent="Exemplaire déjà emprunté : choisissez un autre exemplaire.";preparerEmprunt();return;}
+  ACTIFS.push([etu[0],+ex,"2026-12-03"]);
+  box.className="message ok";box.textContent=`Emprunt enregistré : ${EXEMPLAIRES[ex].code} pour ${etu[1]}, retour prévu le 03/12/2026.`;
+  $("#e-etu").value="";preparerEmprunt();
+};
+
+/* ---- 5. Tableau de bord ---- */
+function dessinerBord(){
+  const q=$("#q-emp").value.trim().toLowerCase();
+  const lignes=ACTIFS.map(a=>({etu:nomEtu(a[0]),livre:LIVRES.find(l=>l.id===EXEMPLAIRES[a[1]].livre).titre,d:a[2]})).sort((x,y)=>x.d<y.d?-1:1)
+    .filter(r=>!q||(r.etu+" "+r.livre).toLowerCase().includes(q));
+  $("#tb").innerHTML=lignes.map(r=>{const re=r.d<AUJ;return `<tr class="${re?'retard':''}"><td>${r.etu}</td><td>${r.livre}</td><td>${frDate(r.d)}</td><td><span class="tag ${re?'r':'b'}">${re?'En retard':'En cours'}</span></td></tr>`}).join("")||`<tr><td colspan="4">Aucun emprunt trouvé.</td></tr>`;
+  $("#n-actifs").textContent=ACTIFS.length; $("#n-retards").textContent=ACTIFS.filter(a=>a[2]<AUJ).length;
+}
+$("#btn-chercher").onclick=()=>{$("#zone-chercher").classList.toggle("cache");$("#q-emp").focus()};
+$("#q-emp").oninput=dessinerBord;
+
+aller("connexion");
+</script>
+</body>
+</html>
+
+
